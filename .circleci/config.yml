@@ -1,0 +1,75 @@
+version: 2.1
+
+orbs:
+  terraform: circleci/terraform@3.2.1
+  python: circleci/python@1.5.0
+  
+
+jobs:
+  job1:
+    docker:
+      - image: hashicorp/terraform:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install jq
+          command: |
+            apk update
+            apk add jq
+            ls
+      - run:
+          name: Print env variables
+          command: |
+            
+            ENV="$(cat env/environments.json | jq -r '.["'$environment'"].env')"
+            REGION="$(cat env/environments.json | jq -r '.["'$environment'"].region')"
+            SHORT_REGION="$(cat env/environments.json | jq -r '.["'$environment'"].short_region')"
+            ENV_2="$(cat env/environments.json | jq -r '.qa1.env')"
+            echo "----------------"
+            echo "$ENV"
+            echo "$REGION"
+            echo "$SHORT_REGION"
+            echo "----------------"
+            echo "export ENV="$(cat env/environments.json | jq -r '.["'$environment'"].env')"" >> "$BASH_ENV"
+            echo "export REGION="$(cat env/environments.json | jq -r '.["'$environment'"].region')"" >> "$BASH_ENV"
+            echo "export SHORT_REGION="$(cat env/environments.json | jq -r '.["'$environment'"].short_region')"" >> "$BASH_ENV"
+            source "$BASH_ENV"
+            
+      - run: |
+          cp $BASH_ENV bash.env
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bash.env
+  job2:
+    docker:
+      - image: python:3.8
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: |
+          cat bash.env >> $BASH_ENV
+      - run: |
+          # verify; this should print 'BAR'
+          printenv ENV
+      - run:
+          name: Step 1
+          command: |
+            source "$BASH_ENV"
+            echo "----------------"
+            echo "$ENV"
+            echo "$REGION"
+            echo "$SHORT_REGION"
+            echo "----------------"
+           
+workflows:
+  version: 2
+  Infra-Setup-1:
+    jobs:
+      - job1
+      - job2:
+          requires:
+            - job1

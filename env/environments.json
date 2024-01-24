@@ -1,0 +1,22 @@
+{
+  "qa1": {
+    "env": "qa",
+    "region": "ap-south-1",
+    "short_region": "ap1"
+  },
+  "uat1": {
+    "env": "uat",
+    "region": "us-east-1",
+    "short_region": "us1"
+  },
+  "pre_prod1": {
+    "env": "pre_prod",
+    "region": "ap-south-1",
+    "short_region": "ap1"
+  },
+  "prod1": {
+    "env": "prod",
+    "region": "ap-south-1",
+    "short_region": "ap1"
+  }
+}
